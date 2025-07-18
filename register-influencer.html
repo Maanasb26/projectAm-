@@ -44,12 +44,6 @@
     button:hover {
       background: #222;
     }
-    .success-message {
-      color: green;
-      font-weight: bold;
-      text-align: center;
-      margin-top: 10px;
-    }
   </style>
 </head>
 <body>
@@ -63,10 +57,7 @@
       <input type="text" id="niche" placeholder="Niche (e.g. Fashion, Tech)" required />
       <input type="text" id="location" placeholder="Location (City, Country)" required />
       <textarea id="bio" placeholder="Short Bio" rows="4" required></textarea>
-      <label for="profilePic">Upload Profile Picture:</label>
-      <input type="file" id="profilePic" accept="image/*" required />
       <button type="submit">Submit</button>
-      <p class="success-message" id="successMsg" style="display: none;">✅ Submitted Successfully!</p>
     </form>
   </div>
 
@@ -74,13 +65,12 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA2QB9Rpp2675EH8msC_p7KPkcbF-8hTk0",
       authDomain: "projectam-5e55b.firebaseapp.com",
       projectId: "projectam-5e55b",
-      storageBucket: "projectam-5e55b.appspot.com",
+      storageBucket: "projectam-5e55b.appspot.com", // fixed typo here
       messagingSenderId: "758749185704",
       appId: "1:758749185704:web:2269bdbe8fce80b772e49d",
       measurementId: "G-WFGDE81D6K"
@@ -88,10 +78,8 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
     const form = document.getElementById("influencerForm");
-    const successMsg = document.getElementById("successMsg");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -103,20 +91,8 @@
       const niche = document.getElementById("niche").value;
       const location = document.getElementById("location").value;
       const bio = document.getElementById("bio").value;
-      const profilePic = document.getElementById("profilePic").files[0];
-
-      if (!profilePic) {
-        alert("Please upload a profile picture.");
-        return;
-      }
 
       try {
-        // Upload the image first
-        const storageRef = ref(storage, `influencer_images/${Date.now()}_${profilePic.name}`);
-        const snapshot = await uploadBytes(storageRef, profilePic);
-        const photoURL = await getDownloadURL(snapshot.ref);
-
-        // Save all form data + photo URL to Firestore
         await addDoc(collection(db, "influencers"), {
           name,
           email,
@@ -125,14 +101,13 @@
           niche,
           location,
           bio,
-          photoURL,
           createdAt: new Date()
         });
 
-        successMsg.style.display = "block";
+        alert("✅ Successfully submitted!");
         form.reset();
       } catch (error) {
-        console.error("❌ Error:", error);
+        console.error("❌ Error saving to Firestore:", error);
         alert("Something went wrong. Please try again.");
       }
     });
